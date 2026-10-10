@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Écrire un article</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js" defer></script>
+</head>
+<body data-page="write">
+  <header class="site-header">
+    <a class="wordmark" href="index.html" aria-label="Accueil">atelier<span>.</span></a>
+    <nav class="site-nav" aria-label="Navigation principale">
+      <a href="index.html">Le journal</a>
+    </nav>
+    <div class="account-nav">
+      <span class="account-label" id="account-label" hidden></span>
+      <a class="nav-login" id="login-link" href="login.html">Se connecter</a>
+      <a class="nav-write nav-current" id="write-link" href="write.html" hidden>Écrire un article</a>
+      <button class="nav-logout" id="logout-button" type="button" hidden>Déconnexion</button>
+    </div>
+  </header>
+
+  <main class="write-main" id="write-main" hidden>
+    <a class="back-link" href="index.html"><span aria-hidden="true">←</span> Retour au journal</a>
+    <section class="write-heading" aria-labelledby="write-title">
+      <p class="eyebrow">ESPACE AUTEUR</p>
+      <h1 id="write-title">Écrire un article<span>.</span></h1>
+      <p class="write-intro">Prenez le temps de poser vos idées.</p>
+    </section>
+
+    <form class="article-form" id="article-form">
+      <label for="article-title">Titre</label>
+      <input id="article-title" name="titre" type="text" maxlength="120" placeholder="Le titre de votre article" required>
+
+      <label for="article-content">Article</label>
+      <textarea id="article-content" name="article" rows="12" placeholder="Écrivez votre texte…" required></textarea>
+
+      <div class="article-form-footer">
+        <label class="publish-control" for="article-publish">
+          <input id="article-publish" name="publier" type="checkbox" checked>
+          <span>Publier l’article</span>
+        </label>
+        <span class="date-note" id="date-note"></span>
+      </div>
+
+      <p class="form-message" id="article-message" role="status" aria-live="polite"></p>
+      <button class="submit-button" type="submit">Enregistrer l’article <span aria-hidden="true">→</span></button>
+    </form>
+  </main>
+
+  <main class="access-main" id="access-denied" hidden>
+    <section class="access-panel">
+      <p class="eyebrow">ACCÈS AUTEUR</p>
+      <h1 id="access-title">Accès réservé.</h1>
+      <p class="intro" id="access-message">Connectez-vous avec un compte autorisé comme auteur.</p>
+      <a class="submit-button access-action" id="access-action" href="login.html">Se connecter <span aria-hidden="true">→</span></a>
+    </section>
+  </main>
+</body>
+</html>

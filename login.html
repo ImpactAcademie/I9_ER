@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js" defer></script>
+</head>
+<body class="login-page">
+  <main class="auth-shell">
+    <aside class="auth-aside">
+      <a class="wordmark" href="login.html" aria-label="Accueil">atelier<span>.</span></a>
+      <div class="aside-copy">
+        <p class="eyebrow">VOTRE ESPACE PERSONNEL</p>
+        <h2>Le calme,<br>au milieu du quotidien.</h2>
+        <div class="aside-rule" aria-hidden="true"></div>
+        <p class="aside-note">Un espace à vous, tout simplement.</p>
+      </div>
+      <p class="aside-index" aria-hidden="true">01 <span>/</span> 02</p>
+    </aside>
+
+    <section class="auth-content" aria-labelledby="form-title">
+      <div class="auth-panel">
+        <p class="eyebrow">RAVI DE VOUS REVOIR</p>
+        <h1 id="form-title">Entrez, c’est ici.</h1>
+        <p class="intro">Connectez-vous ou créez votre compte pour continuer.</p>
+
+        <div class="tabs" role="tablist" aria-label="Type de formulaire">
+          <button class="tab is-active" type="button" role="tab" aria-selected="true" data-mode="login">Connexion</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-mode="signup">Créer un compte</button>
+        </div>
+
+        <form id="auth-form">
+          <label for="email">Adresse e-mail</label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="vous@exemple.fr" required>
+
+          <label for="password">Mot de passe</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" minlength="6" placeholder="6 caractères minimum" required>
+
+          <div class="confirm-field" hidden>
+            <label for="confirm-password">Confirmer le mot de passe</label>
+            <input id="confirm-password" name="confirm-password" type="password" autocomplete="new-password" minlength="6" placeholder="Répétez le mot de passe">
+          </div>
+
+          <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+          <button class="submit-button" type="submit">Se connecter <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="form-note">Simple et rapide. Aucun compte externe requis.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "users": [
+    {
+      "id": "c8fc7992-20a5-4537-9755-15dbfd7deee4",
+      "email": "virgile.hauregard@gmail.com",
+      "salt": "f4e6c91b325884d612497037c024f3b1",
+      "hash": "669e4e6eee58c5389079a143d9e2d370061a2a13efda759d7ed4649988d3e716b22f4db7af4558492cba9eacc885e6703145ee3baba684fb90373ceb629e0bb5",
+      "author": true
+    },
+    {
+      "email": "brj@jsp.be",
+      "password": "qsdfjklm",
+      "author": false,
+      "id": "aWYgELrgvLk"
+    }
+  ],
+  "article": [
+    {
+      "titre": "Le Bg",
+      "article": "Eros est le le plus Bg du monde des bg et il a un maxi paff",
+      "date": "2026-10-10T13:10:48.676Z",
+      "publier": true,
+      "id": "AUhxjwNnTq8"
+    },
+    {
+      "titre": "Amauri",
+      "article": "Une créature légendaire qui a passé tellement de temp sur blox fruit qu'il",
+      "date": "2026-10-10T13:12:10.621Z",
+      "publier": true,
+      "id": "_R5yaQLW4pY"
+    },
+    {
+      "titre": "JOJO",
+      "article": "jojo est le meilleur animé ever",
+      "date": "2026-10-10T13:16:27.656Z",
+      "publier": true,
+      "id": "osTVjf-wSGs"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

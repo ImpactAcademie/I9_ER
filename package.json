@@ -1,0 +1,25 @@
+{
+  "name": "i9_er",
+  "version": "1.0.0",
+  "description": "",
+  "main": "auth.js",
+  "scripts": {
+    "start": "json-server db.json --host 0.0.0.0 --static . --port 3000",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ImpactAcademie/I9_ER.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ImpactAcademie/I9_ER/issues"
+  },
+  "homepage": "https://github.com/ImpactAcademie/I9_ER#readme",
+  "dependencies": {
+    "json-server": "^1.0.0-beta.15"
+  }
+}
