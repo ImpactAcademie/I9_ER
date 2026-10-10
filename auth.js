@@ -1,6 +1,27 @@
 const authForm = document.querySelector('#auth-form');
 const articleList = document.querySelector('#article-list');
 const articleForm = document.querySelector('#article-form');
+const themeToggle = document.querySelector('#theme-toggle');
+
+if (themeToggle) {
+  const themeIcon = themeToggle.querySelector('.theme-icon');
+  const savedTheme = localStorage.getItem('site-theme');
+  const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day';
+
+  function setTheme(theme, save = false) {
+    document.documentElement.dataset.theme = theme;
+    const nextTheme = theme === 'night' ? 'jour' : 'nuit';
+    themeToggle.setAttribute('aria-label', `Activer le thème ${nextTheme}`);
+    themeToggle.title = `Activer le thème ${nextTheme}`;
+    themeIcon.textContent = theme === 'night' ? '☀' : '☾';
+    if (save) localStorage.setItem('site-theme', theme);
+  }
+
+  setTheme(savedTheme === 'day' || savedTheme === 'night' ? savedTheme : preferredTheme);
+  themeToggle.addEventListener('click', () => {
+    setTheme(document.documentElement.dataset.theme === 'night' ? 'day' : 'night', true);
+  });
+}
 
 async function getConnectedUser() {
   const email = sessionStorage.getItem('connectedEmail');
@@ -18,6 +39,7 @@ function configureAccountNavigation(user) {
   const accountLabel = document.querySelector('#account-label');
   const loginLink = document.querySelector('#login-link');
   const writeLink = document.querySelector('#write-link');
+  const adminLink = document.querySelector('#admin-link');
   const logoutButton = document.querySelector('#logout-button');
 
   if (accountLabel) {
@@ -26,6 +48,7 @@ function configureAccountNavigation(user) {
   }
   if (loginLink) loginLink.hidden = Boolean(user);
   if (writeLink) writeLink.hidden = !user;
+  if (adminLink) adminLink.hidden = user?.author !== true;
   if (logoutButton) {
     logoutButton.hidden = !user;
     logoutButton.addEventListener('click', () => {
@@ -86,6 +109,143 @@ async function loadArticles() {
   } catch {
     status.textContent = 'Les articles ne peuvent pas être chargés pour le moment.';
   }
+}
+
+function makeAdminCell(value, className = '') {
+  const cell = document.createElement('td');
+  cell.textContent = value;
+  if (className) cell.className = className;
+  return cell;
+}
+
+function refreshAdminCount(body, countElement, emptyMessage) {
+  const rowCount = body.querySelectorAll('.admin-data-row').length;
+  countElement.textContent = String(rowCount).padStart(2, '0');
+  body.querySelector('.admin-empty-row')?.remove();
+
+  if (rowCount === 0) {
+    const row = document.createElement('tr');
+    row.className = 'admin-empty-row';
+    const cell = makeAdminCell(emptyMessage);
+    cell.colSpan = Number(body.dataset.columns);
+    row.append(cell);
+    body.append(row);
+  }
+}
+
+function addAdminDeleteButton(row, resource, entry, description, onDelete, disabled = false) {
+  const cell = document.createElement('td');
+  const button = document.createElement('button');
+  button.className = 'admin-delete-button';
+  button.type = 'button';
+  button.textContent = 'Supprimer';
+  button.disabled = disabled;
+  if (disabled) button.title = 'Impossible de supprimer le compte actuellement connecté.';
+
+  button.addEventListener('click', async () => {
+    if (!window.confirm(`Supprimer ${description} ? Cette action est définitive.`)) return;
+
+    button.disabled = true;
+    const status = document.querySelector('#admin-status');
+    try {
+      const response = await fetch(`/${resource}/${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Suppression impossible');
+      row.remove();
+      onDelete();
+      status.textContent = `${description} supprimé.`;
+    } catch {
+      status.textContent = `Impossible de supprimer ${description}. Réessayez.`;
+      button.disabled = false;
+    }
+  });
+
+  cell.append(button);
+  row.append(cell);
+}
+
+async function loadAdminData(currentUser) {
+  const status = document.querySelector('#admin-status');
+  const usersBody = document.querySelector('#users-body');
+  const articlesBody = document.querySelector('#admin-articles-body');
+  const usersCount = document.querySelector('#users-count');
+  const articlesCount = document.querySelector('#admin-articles-count');
+
+  try {
+    const [usersResponse, articlesResponse] = await Promise.all([fetch('/users'), fetch('/article')]);
+    if (!usersResponse.ok || !articlesResponse.ok) throw new Error('Chargement impossible');
+    const [users, articles] = await Promise.all([usersResponse.json(), articlesResponse.json()]);
+
+    users.sort((first, second) => String(first.email).localeCompare(String(second.email), 'fr'));
+    articles.sort((first, second) => new Date(second.date).getTime() - new Date(first.date).getTime());
+
+    usersBody.replaceChildren();
+    users.forEach((user) => {
+      const row = document.createElement('tr');
+      row.className = 'admin-data-row';
+      row.append(makeAdminCell(user.email || 'Adresse inconnue'));
+      row.append(makeAdminCell(user.author === true ? 'Auteur' : 'Compte'));
+      addAdminDeleteButton(
+        row,
+        'users',
+        user,
+        `le compte ${user.email || 'sans adresse'}`,
+        () => refreshAdminCount(usersBody, usersCount, 'Aucun compte utilisateur.'),
+        user.id === currentUser.id
+      );
+      usersBody.append(row);
+    });
+    refreshAdminCount(usersBody, usersCount, 'Aucun compte utilisateur.');
+
+    articlesBody.replaceChildren();
+    articles.forEach((article) => {
+      const row = document.createElement('tr');
+      row.className = 'admin-data-row';
+      row.append(makeAdminCell(article.titre || 'Sans titre', 'admin-article-name'));
+      row.append(makeAdminCell(formatArticleDate(article.date)));
+      row.append(makeAdminCell(article.publier === true ? 'Publié' : 'Brouillon'));
+      addAdminDeleteButton(
+        row,
+        'article',
+        article,
+        `l’article « ${article.titre || 'Sans titre'} »`,
+        () => refreshAdminCount(articlesBody, articlesCount, 'Aucun article.')
+      );
+      articlesBody.append(row);
+    });
+    refreshAdminCount(articlesBody, articlesCount, 'Aucun article.');
+    status.textContent = '';
+  } catch {
+    status.textContent = 'Les données ne peuvent pas être chargées. Réessayez dans un instant.';
+  }
+}
+
+if (document.body.dataset.page === 'admin') {
+  const adminMain = document.querySelector('#admin-main');
+  const accessDenied = document.querySelector('#admin-denied');
+  const accessTitle = document.querySelector('#admin-access-title');
+  const accessMessage = document.querySelector('#admin-access-message');
+  const accessAction = document.querySelector('#admin-access-action');
+
+  getConnectedUser().then((user) => {
+    configureAccountNavigation(user);
+    if (!user || user.author !== true) {
+      accessTitle.textContent = user ? 'Accès administrateur requis.' : 'Connexion requise.';
+      accessMessage.textContent = user
+        ? 'Ce compte ne dispose pas des droits d’administration.'
+        : 'Connectez-vous avec un compte administrateur.';
+      accessAction.href = user ? 'index.html' : 'login.html';
+      accessAction.firstChild.textContent = user ? 'Retour au journal ' : 'Se connecter ';
+      accessDenied.hidden = false;
+      return;
+    }
+
+    adminMain.hidden = false;
+    loadAdminData(user);
+  }).catch(() => {
+    configureAccountNavigation(null);
+    accessMessage.textContent = 'Le compte ne peut pas être vérifié. Réessayez dans un instant.';
+    accessDenied.hidden = false;
+  });
 }
 
 if (articleList) {

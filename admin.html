@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administration</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js" defer></script>
+</head>
+<body data-page="admin">
+  <header class="site-header">
+    <a class="wordmark" href="index.html" aria-label="Accueil"><img class="brand-mark" src="atelier-mark.svg" alt=""><span class="wordmark-name">atelier<span>.</span></span></a>
+    <nav class="site-nav" aria-label="Navigation principale"><a href="index.html">Le journal</a></nav>
+    <div class="account-nav">
+      <span class="account-label" id="account-label" hidden></span>
+      <a class="nav-login" id="login-link" href="login.html">Se connecter</a>
+      <a class="nav-write" id="write-link" href="write.html" hidden>Écrire un article</a>
+      <a class="nav-admin nav-current" id="admin-link" href="admin.html" hidden>Administration</a>
+      <button class="nav-logout" id="logout-button" type="button" hidden>Déconnexion</button>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Activer le thème nuit" title="Activer le thème nuit"><span class="theme-icon" aria-hidden="true">☾</span></button>
+    </div>
+  </header>
+
+  <main class="admin-main" id="admin-main" hidden>
+    <section class="admin-heading" aria-labelledby="admin-title">
+      <p class="eyebrow">GESTION DU SITE</p>
+      <h1 id="admin-title">Administration<span>.</span></h1>
+      <p class="journal-intro">Comptes utilisateurs et articles publiés.</p>
+    </section>
+    <p class="admin-status" id="admin-status" role="status" aria-live="polite">Chargement des données…</p>
+
+    <section class="admin-section" aria-labelledby="users-title">
+      <header class="admin-section-heading"><h2 id="users-title">Utilisateurs</h2><span class="admin-count" id="users-count">--</span></header>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th scope="col">Adresse e-mail</th><th scope="col">Rôle</th><th scope="col">Action</th></tr></thead>
+          <tbody id="users-body" data-columns="3"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="admin-section" aria-labelledby="admin-articles-title">
+      <header class="admin-section-heading"><h2 id="admin-articles-title">Articles</h2><span class="admin-count" id="admin-articles-count">--</span></header>
+      <div class="admin-table-wrap">
+        <table class="admin-table admin-article-table">
+          <thead><tr><th scope="col">Titre</th><th scope="col">Date</th><th scope="col">État</th><th scope="col">Action</th></tr></thead>
+          <tbody id="admin-articles-body" data-columns="4"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <main class="access-main" id="admin-denied" hidden>
+    <section class="access-panel">
+      <p class="eyebrow">ESPACE ADMINISTRATION</p>
+      <h1 id="admin-access-title">Accès réservé.</h1>
+      <p class="intro" id="admin-access-message">Connectez-vous avec un compte administrateur.</p>
+      <a class="submit-button access-action" id="admin-access-action" href="login.html">Se connecter <span aria-hidden="true">→</span></a>
+    </section>
+  </main>
+</body>
+</html>
