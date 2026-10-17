@@ -23,16 +23,45 @@ if (themeToggle) {
   });
 }
 
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+async function isPasswordValid(user, password) {
+  if (!user || !password) return false;
+
+  if (typeof user.password === 'string') {
+    return user.password === password;
+  }
+
+  if (user.hash && user.salt && window.PasswordUtils && typeof window.PasswordUtils.verifyPassword === 'function') {
+    return window.PasswordUtils.verifyPassword(password, user.hash, user.salt, window.PASSWORD_PEPPER);
+  }
+
+  return false;
+}
+
+async function createPasswordRecord(password) {
+  if (!password) return { hash: '', salt: '' };
+  if (!window.PasswordUtils || typeof window.PasswordUtils.hashPassword !== 'function') {
+    return { hash: password, salt: '' };
+  }
+  return window.PasswordUtils.hashPassword(password, undefined, window.PASSWORD_PEPPER);
+}
+
 async function getConnectedUser() {
-  const email = sessionStorage.getItem('connectedEmail');
+  const email = normalizeEmail(sessionStorage.getItem('connectedEmail'));
   if (!email) return null;
+
+  const user = await window.SupabaseClient?.findUserByEmail ? window.SupabaseClient.findUserByEmail(email) : null;
+  if (user) return user;
 
   const response = await fetch(`/users?email=${encodeURIComponent(email)}`);
   if (!response.ok) throw new Error('Impossible de vérifier le compte.');
   const users = await response.json();
-  const user = users.find((entry) => entry.email === email);
-  if (!user) sessionStorage.removeItem('connectedEmail');
-  return user || null;
+  const match = users.find((entry) => normalizeEmail(entry.email) === email);
+  if (!match) sessionStorage.removeItem('connectedEmail');
+  return match || null;
 }
 
 function configureAccountNavigation(user) {
@@ -148,8 +177,12 @@ function addAdminDeleteButton(row, resource, entry, description, onDelete, disab
     button.disabled = true;
     const status = document.querySelector('#admin-status');
     try {
-      const response = await fetch(`/${resource}/${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Suppression impossible');
+      if (resource === 'users' && window.SupabaseClient?.deleteUserRecord) {
+        await window.SupabaseClient.deleteUserRecord(entry.id);
+      } else {
+        const response = await fetch(`/${resource}/${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Suppression impossible');
+      }
       row.remove();
       onDelete();
       status.textContent = `${description} supprimé.`;
@@ -171,11 +204,15 @@ async function loadAdminData(currentUser) {
   const articlesCount = document.querySelector('#admin-articles-count');
 
   try {
-    const [usersResponse, articlesResponse] = await Promise.all([fetch('/users'), fetch('/article')]);
-    if (!usersResponse.ok || !articlesResponse.ok) throw new Error('Chargement impossible');
-    const [users, articles] = await Promise.all([usersResponse.json(), articlesResponse.json()]);
+    const users = await (window.SupabaseClient?.listUsers ? window.SupabaseClient.listUsers() : fetch('/users').then((response) => {
+      if (!response.ok) throw new Error('Chargement impossible');
+      return response.json();
+    }));
+    const articlesResponse = await fetch('/article');
+    if (!articlesResponse.ok) throw new Error('Chargement impossible');
+    const articles = await articlesResponse.json();
 
-    users.sort((first, second) => String(first.email).localeCompare(String(second.email), 'fr'));
+    users.sort((first, second) => String(first.email || '').localeCompare(String(second.email || ''), 'fr'));
     articles.sort((first, second) => new Date(second.date).getTime() - new Date(first.date).getTime());
 
     usersBody.replaceChildren();
@@ -356,40 +393,56 @@ if (authForm) {
     const email = String(formData.get('email')).trim().toLowerCase();
     const password = String(formData.get('password'));
     try {
-      const usersResponse = await fetch(`/users?email=${encodeURIComponent(email)}`);
-      if (!usersResponse.ok) throw new Error('API indisponible');
-      const users = await usersResponse.json();
+      const existingUser = await (window.SupabaseClient?.findUserByEmail ? window.SupabaseClient.findUserByEmail(email) : fetch(`/users?email=${encodeURIComponent(email)}`).then(async (response) => {
+        if (!response.ok) throw new Error('API indisponible');
+        const users = await response.json();
+        return users.find((entry) => normalizeEmail(entry.email) === email) || null;
+      }));
 
       let account;
       if (mode === 'signup') {
-        if (users.length > 0) {
-          if (typeof users[0].password === 'string') {
+        if (existingUser) {
+          if (typeof existingUser.password === 'string' || (existingUser.hash && existingUser.salt)) {
             message.textContent = 'Un compte existe déjà avec cette adresse e-mail.';
             return;
           }
 
-          const migrateResponse = await fetch(`/users/${users[0].id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-          });
-          if (!migrateResponse.ok) throw new Error('Mise à jour du compte impossible');
-          account = await migrateResponse.json();
+          const passwordRecord = await createPasswordRecord(password);
+          account = await (window.SupabaseClient?.updateUserRecord
+            ? window.SupabaseClient.updateUserRecord(existingUser.id, { email, hash: passwordRecord.hash, salt: passwordRecord.salt })
+            : fetch(`/users/${existingUser.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, hash: passwordRecord.hash, salt: passwordRecord.salt })
+              }).then((response) => {
+                if (!response.ok) throw new Error('Mise à jour du compte impossible');
+                return response.json();
+              }));
         } else {
-          const createResponse = await fetch('/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, author: false })
-          });
-          if (!createResponse.ok) throw new Error('Création du compte impossible');
-          account = await createResponse.json();
+          const passwordRecord = await createPasswordRecord(password);
+          account = await (window.SupabaseClient?.createUserRecord
+            ? window.SupabaseClient.createUserRecord({ email, hash: passwordRecord.hash, salt: passwordRecord.salt, author: false })
+            : fetch('/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, hash: passwordRecord.hash, salt: passwordRecord.salt, author: false })
+              }).then((response) => {
+                if (!response.ok) throw new Error('Création du compte impossible');
+                return response.json();
+              }));
         }
       } else {
-        account = users.find((entry) => entry.password === password);
-        if (!account) {
+        if (!existingUser) {
           message.textContent = 'Adresse e-mail ou mot de passe incorrect.';
           return;
         }
+
+        const valid = await isPasswordValid(existingUser, password);
+        if (!valid) {
+          message.textContent = 'Adresse e-mail ou mot de passe incorrect.';
+          return;
+        }
+        account = existingUser;
       }
 
       sessionStorage.setItem('connectedEmail', email);

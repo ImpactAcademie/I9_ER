@@ -1,41 +1,34 @@
 {
   "users": [
     {
-      "id": "c8fc7992-20a5-4537-9755-15dbfd7deee4",
-      "email": "virgile.hauregard@gmail.com",
-      "salt": "f4e6c91b325884d612497037c024f3b1",
-      "hash": "669e4e6eee58c5389079a143d9e2d370061a2a13efda759d7ed4649988d3e716b22f4db7af4558492cba9eacc885e6703145ee3baba684fb90373ceb629e0bb5",
+      "id": "admin-001",
+      "email": "admin@atelier.fr",
+      "hash": "0bcffec7e962cb981cdfb582abdd9589e1626103fe4d7ed3f2082c9c2b80262a",
+      "salt": "df1f78f76d59b1f640e92a5150d0088a",
       "author": true
     },
     {
-      "email": "brj@jsp.be",
-      "password": "qsdfjklm",
-      "author": false,
-      "id": "aWYgELrgvLk"
+      "id": "user-001",
+      "email": "user@atelier.fr",
+      "hash": "170118dbb810aac309c224818ce26b9ab1409703ac0538d80bb87518cca1af3e",
+      "salt": "3e5b38910a5e7671f32f36a8137b052b",
+      "author": false
     }
   ],
   "article": [
     {
-      "titre": "Le Bg",
-      "article": "Eros est le le plus Bg du monde des bg et il a un maxi paff",
-      "date": "2026-10-10T13:10:48.676Z",
-      "publier": true,
-      "id": "AUhxjwNnTq8"
+      "id": "article-001",
+      "titre": "Bienvenue dans le journal",
+      "article": "Ceci est un exemple d'article compatible avec le site.",
+      "date": "2026-10-17T09:00:00.000Z",
+      "publier": true
     },
     {
-      "titre": "Amauri",
-      "article": "Une créature légendaire qui a passé tellement de temp sur blox fruit qu'il",
-      "date": "2026-10-10T13:12:10.621Z",
-      "publier": true,
-      "id": "_R5yaQLW4pY"
-    },
-    {
-      "titre": "JOJO",
-      "article": "jojo est le meilleur animé ever",
-      "date": "2026-10-10T13:16:27.656Z",
-      "publier": true,
-      "id": "osTVjf-wSGs"
+      "id": "article-002",
+      "titre": "Deuxième exemple",
+      "article": "Un article de démonstration pour tester l'affichage du journal.",
+      "date": "2026-10-17T11:30:00.000Z",
+      "publier": true
     }
-  ],
-  "$schema": "./node_modules/json-server/schema.json"
+  ]
 }
